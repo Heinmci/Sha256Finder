@@ -1,0 +1,8 @@
+[package]
+name = "sha256"
+version = "0.1.0"
+authors = ["Jules <dejardin@hotmail.co.uk>"]
+
+[dependencies]
+rust-crypto = "0.2.36"
+time = "*"
