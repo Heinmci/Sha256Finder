@@ -33,7 +33,7 @@ fn main() {
 }
 
 fn start_threads(nb_threads: u8, hash_to_find: &str) -> Receiver<String> {
-    let thread_data_vec = ThreadData::assign_thread_data(nb_threads,&hash_to_find);
+    let thread_data_vec = ThreadData::assign_thread_data(nb_threads, hash_to_find);
     let (tx, rx) = mpsc::channel();
 
     for mut thread_data in thread_data_vec {
@@ -47,43 +47,31 @@ fn start_threads(nb_threads: u8, hash_to_find: &str) -> Receiver<String> {
 }
 
 fn get_arguments(arguments: Vec<String>) -> (String, u8) {
-    let hash_to_find = arguments[2].clone();
+    let hash_to_find = arguments[2].clone().to_lowercase();
     let nb_threads = arguments[1].parse().expect("Not a number");
 
     (hash_to_find, nb_threads)
 }
 
 fn search_for_varying_length_words(thread_data: &ThreadData) {
-
     for index in 1..100 {
         for letter in &thread_data.letters {
-            println!("Searching for word of size: {} | Starting with letter {}", index, letter);
-            let word = String::new();
-            find_pwd(word, thread_data, *letter, 0, index);
+            //println!("Searching for word of size: {} | Starting with letter {}", index, letter);
+            let word = letter.to_string();
+            find_pwd(&word, thread_data, 1, index);
         }
     }
 }
 
-fn find_pwd(word: String, thread_data: &ThreadData, first_letter: char, current_depth: u8, max_depth: u8) {    
-    match current_depth {
-        x if x == max_depth => {
-            at_max_depth(&word, thread_data);
-            return;
-        },
-        _ => {
-            for index in 0..DICTIONNARY.len() {
-                if current_depth == 0 {
-                    let mut new_word = word.to_string();
-                    new_word.push(first_letter);
-                    find_pwd(new_word, thread_data, first_letter, current_depth + 1, max_depth);
-                    break;
-                } else {
-                    let mut new_word = word.to_string();
-                    new_word.push(DICTIONNARY[index]);
-                    find_pwd(new_word, thread_data, first_letter, current_depth + 1, max_depth);
-                }
-                
-            }
+fn find_pwd(word: &str, thread_data: &ThreadData, current_depth: u8, max_depth: u8) {    
+    if current_depth == max_depth{
+        at_max_depth(word, thread_data);
+        return;
+    } else {
+        for dict_letter in &DICTIONNARY[..] {
+            let mut new_word = word.to_string();
+            new_word.push(*dict_letter);
+            find_pwd(&new_word, thread_data, current_depth + 1, max_depth);
         }
     }
 }
@@ -102,8 +90,7 @@ fn matches_hash(word_to_test: &str, hash_to_find: &str) -> bool {
     hasher.input(word_to_test.as_bytes());
     let output = hasher.result_str();
     
-    
-    if output == *hash_to_find.to_lowercase() {
+    if output == *hash_to_find {
         return true;
     }
 
